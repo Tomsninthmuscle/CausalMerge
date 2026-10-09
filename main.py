@@ -13,9 +13,7 @@ torch.cuda.empty_cache()
 torch.cuda.reset_peak_memory_stats() 
 
 def get_resnet50_cifar10(num_classes=2):
-    """
-    构建 ResNet50 模型
-    """
+  
     model = models.resnet50(weights=None)
     num_features = model.fc.in_features
     model.fc = nn.Linear(num_features, num_classes)
@@ -28,10 +26,7 @@ class CausalMerger:
         self.device = device
         self.causal_masks = {}        self.anchor_params = {}
     def compute_causal_masks(self, dataloader_old, dataloader_new, criterion=nn.CrossEntropyLoss(), max_steps=50):
-        """
-        计算通道级因果掩码
-        原理：通过比较新旧模型在各自数据上的梯度方向余弦相似度，识别因果不变特征
-        """
+      
         print("🔍 Phase 1: Computing gradients and generating causal masks...")
         
         m_old = deepcopy(self.model_old).train()
@@ -114,9 +109,7 @@ class CausalMerger:
         print(f"✅ Causal mask computation complete! Processed {len(self.causal_masks)} layers in total.")
 
     def merge_models(self, base_alpha=0.5, save_path='merged_model.pth'):
-        """
-        基于动态 Alpha 的模型融合
-        """
+     
         print("🔄 Phase 2: Executing dynamic alpha causal merging...")
         merged_model = deepcopy(self.model_old)
         merged_model.to(self.device)
@@ -153,10 +146,7 @@ class CausalMerger:
         return merged_model
 
     def fine_tune(self, model, train_loader, val_loader=None, epochs=10, lr=1e-4, save_path='final_model.pth'):
-        """
-        第三阶段：因果掩码正则化微调 (Causal Mask Regularization Fine-tuning)
-        创新点：使用 (1-Mask) 作为正则化系数，约束非因果参数的漂移
-        """
+      
         print("🔥 Phase 3: Starting causal mask regularization fine-tuning...")
         device = next(model.parameters()).device
         optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=5e-4)
